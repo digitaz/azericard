@@ -56,7 +56,6 @@ module Azericard
     # @param [Hash] options
     # @return [Azericard::AzericardOptions]
     def self.options_for_request(options = {})
-      binding.pry
       nonce      = options.fetch :nonce, SecureRandom.hex(8)
       timestamp  = options.fetch :timestamp, Time.now.utc.strftime('%Y%m%d%H%M%S')
       merch_name = options.fetch :merch_name, Azericard.merchant_name
