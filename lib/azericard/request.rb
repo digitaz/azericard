@@ -34,9 +34,7 @@ module Azericard
           "TRTYPE"    => request_options.tr_type,
           "TIMESTAMP" => request_options.timestamp,
           "NONCE"     => request_options.nonce,
-          "P_SIGN"    => p_sign,
-          "NAME"      => request_options.name,
-          "M_INFO"    => request_options.m_info
+          "P_SIGN"    => p_sign
         }
       )
 
@@ -95,9 +93,6 @@ module Azericard
           "#{terminal.size}#{terminal}#{email.size}#{email}#{tr_type.size}#{tr_type}#{country.size}#{country}" \
           "#{merch_gmt.size}#{merch_gmt}#{timestamp.size}#{timestamp}#{nonce.size}#{nonce}#{backref.size}#{backref}"
 
-        name = options.fetch(:name, nil)
-        m_info = options.fetch(:m_info, nil)
-
       elsif tr_type == '21' || tr_type == '24'
         # Merchant bank's retrieval reference number
         rrn = options.fetch(:rrn).to_s
@@ -110,11 +105,7 @@ module Azericard
           "#{timestamp.size}#{timestamp}#{nonce.size}#{nonce}"
       end
 
-      if tr_type == '0'
-        AzericardOptions.new(nonce, timestamp, amount, currency, order, tr_type, desc, backref, rrn, intref, text_to_sign, name, m_info)
-      else
-        AzericardOptions.new(nonce, timestamp, amount, currency, order, tr_type, desc, backref, rrn, intref, text_to_sign)
-      end
+      AzericardOptions.new(nonce, timestamp, amount, currency, order, tr_type, desc, backref, rrn, intref, text_to_sign)
     rescue KeyError => e
       e.message
     end

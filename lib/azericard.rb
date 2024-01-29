@@ -14,8 +14,6 @@ module Azericard
     :amount, :currency, :order, :tr_type,
     :desc, :backref,
     :rrn, :intref,
-    :text_to_sign,
-    :name,
-    :m_info
+    :text_to_sign
   ).freeze
 end
