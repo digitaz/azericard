@@ -8,7 +8,7 @@ require 'azericard/version'
 Gem::Specification.new do |spec|
   spec.name          = "azericard"
   spec.version       = Azericard::VERSION
-  spec.authors       = ["Admin"]
+  spec.authors       = ["Digitaz - DC Engineering"]
   spec.email         = ["admin@digit.az"]
   spec.description   = "Provides an interface to AzeriCard online payment processing system"
   spec.summary       = "Unoffical gem to provide a ruby interface for Azericard electronic payment system"
