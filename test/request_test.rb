@@ -19,10 +19,14 @@ class RequestTest < Minitest::Test
     assert_equal 'example hex data', Azericard::Request.hex2bin('6578616d706c65206865782064617461')
   end
 
+  def test_generate_mac
+    assert_equal '115110f072f734a729ebd0e7b65cfd8662fef682', Azericard::Request.generate_mac('text')
+  end
+
   def test_generate_rsa_mac
     text_to_sign = 'Hello!'
     rsa_key = OpenSSL::PKey::RSA.new(2048)
-
+    Azericard.is_sign_rsa = true
     Azericard.private_key_pem = rsa_key.to_pem
     Azericard.public_key_pem = rsa_key.public_key.to_pem
 

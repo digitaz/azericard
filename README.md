@@ -27,6 +27,11 @@ Azericard.configure do |config|
   config.merchant_url   = Settings.azericard.merchant_url
   config.country_code   = Settings.azericard.country_code
   config.gmt_offset     = Settings.azericard.gmt_offset
+  
+  # use RSA algorithm for MAC field
+  config.is_sign_rsa = true
+  config.public_key_pem = ENV["AZERICARD_PUBKEY"]
+  config.private_key_pem = ENV["AZERICARD_PRIVKEY"]
 end
 ```
 
