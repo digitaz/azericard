@@ -27,8 +27,8 @@ class RequestTest < Minitest::Test
     text_to_sign = 'Hello!'
     rsa_key = OpenSSL::PKey::RSA.new(2048)
     Azericard.is_sign_rsa = true
-    Azericard.private_key_pem = rsa_key.to_pem
-    Azericard.public_key_pem = rsa_key.public_key.to_pem
+    Azericard.private_key_pem = './test/support/keys/private_key.pem'
+    Azericard.public_key_pem = './test/support/keys/public_key.pem'
 
     assert Azericard::Request.generate_mac(text_to_sign)
   end

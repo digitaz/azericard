@@ -113,10 +113,10 @@ module Azericard
     # Generates MAC – Message Authentication Code
     def self.generate_mac(text_to_sign)
       if Azericard.is_sign_rsa
-        private_key = OpenSSL::PKey::RSA.new(Azericard.private_key_pem)
+        private_key = OpenSSL::PKey::RSA.new(File.open(Azericard.private_key_pem).read)
         signature = private_key.sign(OpenSSL::Digest::SHA256.new, text_to_sign)
 
-        public_key = OpenSSL::PKey::RSA.new(Azericard.public_key_pem)
+        public_key = OpenSSL::PKey::RSA.new(File.open(Azericard.public_key_pem).read)
         if public_key.verify(OpenSSL::Digest::SHA256.new, signature, text_to_sign)
           signature.unpack('H*').first
         end
