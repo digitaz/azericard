@@ -94,6 +94,12 @@ module Azericard
           "#{terminal.size}#{terminal}#{email.size}#{email}#{tr_type.size}#{tr_type}#{country.size}#{country}" \
           "#{merch_gmt.size}#{merch_gmt}#{timestamp.size}#{timestamp}#{nonce.size}#{nonce}#{backref.size}#{backref}"
       elsif tr_type == '1'
+        # Order description
+        desc = options.fetch(:desc).to_s
+
+        # Merchant URL for posting authorization result
+        backref = options.fetch(:backref)
+
         text_to_sign = "#{amount.size}#{amount}#{currency.size}#{currency}" \
           "#{terminal.size}#{terminal}#{tr_type.size}#{tr_type}" \
           "#{timestamp.size}#{timestamp}#{nonce.size}#{nonce}#{merch_url.size}#{merch_url}"
