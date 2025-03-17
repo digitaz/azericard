@@ -76,7 +76,8 @@ module Azericard
 
       # Operation type
       #
-      # 0 - auth
+      # 0 - for preauthorization
+      # 1 - for authorization
       # 21 - checkout
       # 24 - reversal
       tr_type = options.fetch(:tr_type).to_s
@@ -92,7 +93,10 @@ module Azericard
           "#{desc.size}#{desc}#{merch_name.size}#{merch_name}#{merch_url.size}#{merch_url}" \
           "#{terminal.size}#{terminal}#{email.size}#{email}#{tr_type.size}#{tr_type}#{country.size}#{country}" \
           "#{merch_gmt.size}#{merch_gmt}#{timestamp.size}#{timestamp}#{nonce.size}#{nonce}#{backref.size}#{backref}"
-
+      elsif tr_type == '1'
+        text_to_sign = "#{amount.size}#{amount}#{currency.size}#{currency}" \
+          "#{terminal.size}#{terminal}#{tr_type.size}#{tr_type}" \
+          "#{timestamp.size}#{timestamp}#{nonce.size}#{nonce}#{merch_url.size}#{merch_url}"
       elsif tr_type == '21' || tr_type == '24'
         # Merchant bank's retrieval reference number
         rrn = options.fetch(:rrn).to_s
