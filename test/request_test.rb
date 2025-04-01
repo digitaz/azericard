@@ -2,6 +2,8 @@
 
 require 'minitest/autorun'
 require 'azericard'
+require 'pry'
+require 'pry-byebug'
 
 class RequestTest < Minitest::Test
   def setup
@@ -25,7 +27,6 @@ class RequestTest < Minitest::Test
 
   def test_generate_rsa_mac
     text_to_sign = 'Hello!'
-    rsa_key = OpenSSL::PKey::RSA.new(2048)
     Azericard.is_sign_rsa = true
     Azericard.private_key_pem = './test/support/keys/private_key.pem'
     Azericard.public_key_pem = './test/support/keys/public_key.pem'
@@ -43,7 +44,7 @@ class RequestTest < Minitest::Test
       backref: 'https://shop.example.com'
     }
     request_options = Azericard::Request.options_for_request(options)
-    assert (/422\.53AZN945328402311Description8Merchant28https:\/\/merchant\.example\.com81234567820merchant@example\.com102AZ2\+4/).match request_options.text_to_sign
+    assert %r{422\.53AZN945328402311Description8Merchant28https://merchant\.example\.com81234567820merchant@example\.com102AZ2\+4}.match request_options.text_to_sign
 
     options = {
       amount: '22.5',
@@ -54,6 +55,6 @@ class RequestTest < Minitest::Test
       intref: '12345'
     }
     request_options = Azericard::Request.options_for_request(options)
-    assert (/9453284023422\.53AZN3RRN512345221812345678/).match request_options.text_to_sign
+    assert(/9453284023422\.53AZN3RRN512345221812345678/.match request_options.text_to_sign)
   end
 end

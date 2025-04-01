@@ -9,7 +9,7 @@ class ConfigurationTest < Minitest::Test
   end
 
   def test_config_options
-    Azericard.endpoint   = 'https://example.com/cgi-bin/cgi_link'
+    Azericard.endpoint = 'https://example.com/cgi-bin/cgi_link'
     Azericard.terminal   = '12345678'
     Azericard.secret_key = '00112233445566778899AABBCCDDEEFF'
     Azericard.merchant_name  = 'Merchant'

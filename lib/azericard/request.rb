@@ -22,33 +22,28 @@ module Azericard
         ssl_cipher_list: 'ECDHE-RSA-AES256-GCM-SHA384',
         verbose: Azericard.debug,
         headers: {
-          "User-Agent" => Azericard.user_agent
+          'User-Agent' => Azericard.user_agent
         },
         body: {
-          "AMOUNT"    => request_options.amount,
-          "CURRENCY"  => request_options.currency,
-          "ORDER"     => request_options.order,
-          "RRN"       => request_options.rrn,
-          "INT_REF"   => request_options.intref,
-          "TERMINAL"  => Azericard.terminal,
-          "TRTYPE"    => request_options.tr_type,
-          "TIMESTAMP" => request_options.timestamp,
-          "NONCE"     => request_options.nonce,
-          "P_SIGN"    => p_sign
+          'AMOUNT' => request_options.amount,
+          'CURRENCY' => request_options.currency,
+          'ORDER' => request_options.order,
+          'RRN' => request_options.rrn,
+          'INT_REF' => request_options.intref,
+          'TERMINAL' => Azericard.terminal,
+          'TRTYPE' => request_options.tr_type,
+          'TIMESTAMP' => request_options.timestamp,
+          'NONCE' => request_options.nonce,
+          'P_SIGN' => p_sign
         }
       )
 
       response = request.run
 
-      if response.success?
-        if response.body.strip == '0'
-          true
-        else
-          raise AzericardResponseError, "Azericard responded with: #{response.body[0..4]}"
-        end
-      else
-        raise HTTPResponseError, "Azericard request failed: #{response.code}"
-      end
+      raise HTTPResponseError, "Azericard request failed: #{response.code}" unless response.success?
+      raise AzericardResponseError, "Azericard responded with: #{response.body[0..4]}" unless response.body.strip == '0'
+
+      true
     end
 
     # @param [Hash] options
@@ -82,7 +77,8 @@ module Azericard
       # 24 - reversal
       tr_type = options.fetch(:tr_type).to_s
 
-      if tr_type == '0'
+      case tr_type
+      when '0'
         # Order description
         desc = options.fetch(:desc).to_s
 
@@ -93,7 +89,7 @@ module Azericard
           "#{desc.size}#{desc}#{merch_name.size}#{merch_name}#{merch_url.size}#{merch_url}" \
           "#{terminal.size}#{terminal}#{email.size}#{email}#{tr_type.size}#{tr_type}#{country.size}#{country}" \
           "#{merch_gmt.size}#{merch_gmt}#{timestamp.size}#{timestamp}#{nonce.size}#{nonce}#{backref.size}#{backref}"
-      elsif tr_type == '1'
+      when '1'
         # Order description
         desc = options.fetch(:desc).to_s
 
@@ -103,7 +99,7 @@ module Azericard
         text_to_sign = "#{amount.size}#{amount}#{currency.size}#{currency}" \
           "#{terminal.size}#{terminal}#{tr_type.size}#{tr_type}" \
           "#{timestamp.size}#{timestamp}#{nonce.size}#{nonce}#{merch_url.size}#{merch_url}"
-      elsif tr_type == '21' || tr_type == '24'
+      when '21', '24'
         # Merchant bank's retrieval reference number
         rrn = options.fetch(:rrn).to_s
 
@@ -123,13 +119,20 @@ module Azericard
     # Generates MAC – Message Authentication Code
     def self.generate_mac(text_to_sign)
       if Azericard.is_sign_rsa
-        private_key = OpenSSL::PKey::RSA.new(File.open(Azericard.private_key_pem).read)
-        signature = private_key.sign(OpenSSL::Digest::SHA256.new, text_to_sign)
-
-        public_key = OpenSSL::PKey::RSA.new(File.open(Azericard.public_key_pem).read)
-        if public_key.verify(OpenSSL::Digest::SHA256.new, signature, text_to_sign)
-          signature.unpack('H*').first
-        end
+        key = if File.exist?(Azericard.private_key_pem)
+                File.open(Azericard.private_key_pem).read
+              else
+                Azericard.private_key_pem
+              end
+        private_key = OpenSSL::PKey::RSA.new(key)
+        signature = private_key.sign(OpenSSL::Digest.new('SHA256'), text_to_sign)
+        key = if File.exist?(Azericard.public_key_pem)
+                File.open(Azericard.public_key_pem).read
+              else
+                Azericard.public_key_pem
+              end
+        public_key = OpenSSL::PKey::RSA.new(key)
+        signature.unpack1('H*') if public_key.verify(OpenSSL::Digest.new('SHA256'), signature, text_to_sign)
       else
         OpenSSL::HMAC.hexdigest('sha1', hex2bin(Azericard.secret_key), text_to_sign)
       end

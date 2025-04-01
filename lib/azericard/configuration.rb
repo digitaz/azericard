@@ -2,12 +2,12 @@
 
 module Azericard
   module Configuration
-    VALID_OPTIONS_KEYS = [
-      :endpoint, :terminal, :secret_key, :user_agent, :debug,
-      :merchant_name, :merchant_url, :merchant_email, :country_code, :gmt_offset,
-      :is_sign_rsa, :private_key_pem, :public_key_pem
+    VALID_OPTIONS_KEYS = %i[
+      endpoint terminal secret_key user_agent debug
+      merchant_name merchant_url merchant_email country_code gmt_offset
+      is_sign_rsa private_key_pem public_key_pem
     ].freeze
-    DEFAULT_USER_AGENT = "Azericard Ruby Gem #{Azericard::VERSION}".freeze
+    DEFAULT_USER_AGENT = "Azericard Ruby Gem #{Azericard::VERSION}"
 
     attr_accessor(*VALID_OPTIONS_KEYS)
 
