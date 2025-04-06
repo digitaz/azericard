@@ -126,13 +126,7 @@ module Azericard
               end
         private_key = OpenSSL::PKey::RSA.new(key)
         signature = private_key.sign(OpenSSL::Digest.new('SHA256'), text_to_sign)
-        key = if File.exist?(Azericard.public_key_pem)
-                File.open(Azericard.public_key_pem).read
-              else
-                Azericard.public_key_pem
-              end
-        public_key = OpenSSL::PKey::RSA.new(key)
-        signature.unpack1('H*') if public_key.verify(OpenSSL::Digest.new('SHA256'), signature, text_to_sign)
+        signature.unpack1('H*')
       else
         OpenSSL::HMAC.hexdigest('sha1', hex2bin(Azericard.secret_key), text_to_sign)
       end
