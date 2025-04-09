@@ -41,7 +41,7 @@ module Azericard
       response = request.run
 
       raise HTTPResponseError, "Azericard request failed: #{response.code}" unless response.success?
-      raise AzericardResponseError, "Azericard responded with: #{response.body[0..4]}" unless response.body.strip == '0'
+      raise AzericardResponseError, "Azericard responded with: #{response.inspect}" unless response.body.strip == '0'
 
       true
     end
