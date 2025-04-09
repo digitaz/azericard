@@ -105,10 +105,14 @@ module Azericard
 
         # E-Commerce gateway internal reference number
         intref = options.fetch(:intref)
-
-        text_to_sign = "#{order.size}#{order}#{amount.size}#{amount}#{currency.size}#{currency}" \
-          "#{rrn.size}#{rrn}#{intref.size}#{intref}#{tr_type.size}#{tr_type}#{terminal.size}#{terminal}" \
-          "#{timestamp.size}#{timestamp}#{nonce.size}#{nonce}"
+        text_to_sign = if Azericard.is_sign_rsa
+                         "#{amount.size}#{amount}#{currency.size}#{currency}#{terminal.size}#{terminal}" \
+                         "#{tr_type.size}#{tr_type}#{order.size}#{order}#{rrn.size}#{rrn}#{intref.size}#{intref}"
+                       else
+                         "#{order.size}#{order}#{amount.size}#{amount}#{currency.size}#{currency}" \
+                         "#{rrn.size}#{rrn}#{intref.size}#{intref}#{tr_type.size}#{tr_type}" \
+                         "#{terminal.size}#{terminal}#{timestamp.size}#{timestamp}#{nonce.size}#{nonce}"
+                       end
       end
 
       AzericardOptions.new(nonce, timestamp, amount, currency, order, tr_type, desc, backref, rrn, intref, text_to_sign)
