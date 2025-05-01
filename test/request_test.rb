@@ -15,6 +15,7 @@ class RequestTest < Minitest::Test
     Azericard.merchant_url   = 'https://merchant.example.com'
     Azericard.country_code   = 'AZ'
     Azericard.gmt_offset     = '+4'
+    Azericard.is_sign_rsa = false
   end
 
   def test_hex2bin

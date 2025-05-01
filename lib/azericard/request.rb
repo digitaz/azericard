@@ -41,9 +41,14 @@ module Azericard
       response = request.run
 
       raise HTTPResponseError, "Azericard request failed: #{response.code}" unless response.success?
-      raise AzericardResponseError, "Azericard responded with: #{response.inspect}" unless response.body.strip == '0'
 
-      true
+      return true if Azericard.is_sign_rsa
+
+      if response.body.strip == '0'
+        true
+      else
+        raise AzericardResponseError, "Azericard responded with: #{response.body[0..4]}"
+      end
     end
 
     # @param [Hash] options
@@ -123,12 +128,7 @@ module Azericard
     # Generates MAC – Message Authentication Code
     def self.generate_mac(text_to_sign)
       if Azericard.is_sign_rsa
-        key = if File.exist?(Azericard.private_key_pem)
-                File.open(Azericard.private_key_pem).read
-              else
-                Azericard.private_key_pem
-              end
-        private_key = OpenSSL::PKey::RSA.new(key)
+        private_key = OpenSSL::PKey::RSA.new(File.open(Azericard.private_key_pem).read)
         signature = private_key.sign(OpenSSL::Digest.new('SHA256'), text_to_sign)
         signature.unpack1('H*')
       else

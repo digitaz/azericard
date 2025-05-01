@@ -18,6 +18,7 @@ class ConfigurationTest < Minitest::Test
     Azericard.country_code   = 'AZ'
     Azericard.gmt_offset     = '+4'
     Azericard.debug          = true
+    Azericard.is_sign_rsa    = true
 
     assert_equal 'https://example.com/cgi-bin/cgi_link', Azericard.endpoint
     assert_equal '12345678', Azericard.terminal
@@ -28,6 +29,7 @@ class ConfigurationTest < Minitest::Test
     assert_equal 'AZ', Azericard.country_code
     assert_equal '+4', Azericard.gmt_offset
     assert Azericard.debug
+    assert Azericard.is_sign_rsa
   end
 
   def test_user_agent

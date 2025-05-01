@@ -1,7 +1,7 @@
 # frozen_string_literal: true
+# coding: utf-8
 
-require 'English'
-lib = File.expand_path('lib', __dir__)
+lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'azericard/version'
 
@@ -13,7 +13,7 @@ Gem::Specification.new do |spec|
   spec.description   = 'Provides an interface to AzeriCard online payment processing system'
   spec.summary       = 'Unoffical gem to provide a ruby interface for Azericard electronic payment system'
 
-  spec.files         = `git ls-files`.split($INPUT_RECORD_SEPARATOR)
+  spec.files         = `git ls-files`.split($/)
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ['lib']
