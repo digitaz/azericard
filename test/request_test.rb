@@ -31,7 +31,7 @@ class RequestTest < Minitest::Test
     Azericard.is_sign_rsa = true
     Azericard.private_key_pem = './test/support/keys/private_key.pem'
     Azericard.public_key_pem = './test/support/keys/public_key.pem'
-
+    Azericard.private_key = Azericard::Request.read(Azericard.private_key_pem)
     assert Azericard::Request.generate_mac(text_to_sign)
   end
 

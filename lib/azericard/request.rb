@@ -128,8 +128,9 @@ module Azericard
     # Generates MAC – Message Authentication Code
     def self.generate_mac(text_to_sign)
       if Azericard.is_sign_rsa
-        private_key = OpenSSL::PKey::RSA.new(File.open(Azericard.private_key_pem).read)
-        signature = private_key.sign(OpenSSL::Digest.new('SHA256'), text_to_sign)
+        p_key = Azericard.private_key || read(Azericard.private_key_pem)
+        rsa = OpenSSL::PKey::RSA.new(p_key)
+        signature = rsa.sign(OpenSSL::Digest.new('SHA256'), text_to_sign)
         signature.unpack1('H*')
       else
         OpenSSL::HMAC.hexdigest('sha1', hex2bin(Azericard.secret_key), text_to_sign)
@@ -139,6 +140,13 @@ module Azericard
     # Decodes a hexadecimally encoded binary string
     def self.hex2bin(str)
       str.scan(/../).map { |x| x.to_i(16).chr }.join
+    end
+
+    def self.read(key_pem)
+      file = File.open(key_pem)
+      file.read
+    ensure
+      file&.close
     end
   end
 end
