@@ -15,7 +15,7 @@ class RequestTest < Minitest::Test
     Azericard.merchant_url   = 'https://merchant.example.com'
     Azericard.country_code   = 'AZ'
     Azericard.gmt_offset     = '+4'
-    Azericard.is_sign_rsa = false
+    Azericard.rsa            = false
   end
 
   def test_hex2bin
@@ -28,9 +28,8 @@ class RequestTest < Minitest::Test
 
   def test_generate_rsa_mac
     text_to_sign = 'Hello!'
-    Azericard.is_sign_rsa = true
+    Azericard.rsa = true
     Azericard.private_key_pem = './test/support/keys/private_key.pem'
-    Azericard.public_key_pem = './test/support/keys/public_key.pem'
     Azericard.private_key = Azericard::Request.read_key(Azericard.private_key_pem)
     assert Azericard::Request.generate_mac(text_to_sign)
   end

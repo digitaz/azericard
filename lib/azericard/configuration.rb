@@ -5,7 +5,7 @@ module Azericard
     VALID_OPTIONS_KEYS = %i[
       endpoint terminal secret_key user_agent debug
       merchant_name merchant_url merchant_email country_code gmt_offset
-      is_sign_rsa private_key_pem public_key_pem private_key
+      rsa private_key_pem private_key
     ].freeze
     DEFAULT_USER_AGENT = "Azericard Ruby Gem #{Azericard::VERSION}"
 
@@ -24,7 +24,7 @@ module Azericard
         send("#{key}=", nil)
       end
       self.user_agent = DEFAULT_USER_AGENT
-      self.is_sign_rsa = false
+      self.rsa = false
     end
   end
 end

@@ -42,7 +42,7 @@ module Azericard
 
       raise HTTPResponseError, "Azericard request failed: #{response.code}" unless response.success?
 
-      return true if Azericard.is_sign_rsa
+      return true if Azericard.rsa
 
       if response.body.strip == '0'
         true
@@ -110,7 +110,7 @@ module Azericard
 
         # E-Commerce gateway internal reference number
         intref = options.fetch(:intref)
-        text_to_sign = if Azericard.is_sign_rsa
+        text_to_sign = if Azericard.rsa
                          "#{amount.size}#{amount}#{currency.size}#{currency}#{terminal.size}#{terminal}" \
                          "#{tr_type.size}#{tr_type}#{order.size}#{order}#{rrn.size}#{rrn}#{intref.size}#{intref}"
                        else
@@ -127,7 +127,7 @@ module Azericard
 
     # Generates MAC – Message Authentication Code
     def self.generate_mac(text_to_sign)
-      if Azericard.is_sign_rsa
+      if Azericard.rsa
         p_key = Azericard.private_key || read_key(Azericard.private_key_pem)
         rsa = OpenSSL::PKey::RSA.new(p_key)
         signature = rsa.sign(OpenSSL::Digest.new('SHA256'), text_to_sign)
