@@ -2,6 +2,8 @@
 
 require 'minitest/autorun'
 require 'azericard'
+require 'pry'
+require 'pry-byebug'
 
 class RequestTest < Minitest::Test
   def setup
@@ -13,6 +15,7 @@ class RequestTest < Minitest::Test
     Azericard.merchant_url   = 'https://merchant.example.com'
     Azericard.country_code   = 'AZ'
     Azericard.gmt_offset     = '+4'
+    Azericard.rsa            = false
   end
 
   def test_hex2bin
@@ -21,6 +24,14 @@ class RequestTest < Minitest::Test
 
   def test_generate_mac
     assert_equal '115110f072f734a729ebd0e7b65cfd8662fef682', Azericard::Request.generate_mac('text')
+  end
+
+  def test_generate_rsa_mac
+    text_to_sign = 'Hello!'
+    Azericard.rsa = true
+    Azericard.private_key_pem = './test/support/keys/private_key.pem'
+    Azericard.private_key = Azericard::Request.read_key(Azericard.private_key_pem)
+    assert Azericard::Request.generate_mac(text_to_sign)
   end
 
   def test_options_for_request
@@ -33,7 +44,7 @@ class RequestTest < Minitest::Test
       backref: 'https://shop.example.com'
     }
     request_options = Azericard::Request.options_for_request(options)
-    assert (/422\.53AZN945328402311Description8Merchant28https:\/\/merchant\.example\.com81234567820merchant@example\.com102AZ2\+4/).match request_options.text_to_sign
+    assert %r{422\.53AZN945328402311Description8Merchant28https://merchant\.example\.com81234567820merchant@example\.com102AZ2\+4}.match request_options.text_to_sign
 
     options = {
       amount: '22.5',
@@ -44,6 +55,6 @@ class RequestTest < Minitest::Test
       intref: '12345'
     }
     request_options = Azericard::Request.options_for_request(options)
-    assert (/9453284023422\.53AZN3RRN512345221812345678/).match request_options.text_to_sign
+    assert(/9453284023422\.53AZN3RRN512345221812345678/.match request_options.text_to_sign)
   end
 end

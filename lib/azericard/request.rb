@@ -22,32 +22,32 @@ module Azericard
         ssl_cipher_list: 'ECDHE-RSA-AES256-GCM-SHA384',
         verbose: Azericard.debug,
         headers: {
-          "User-Agent" => Azericard.user_agent
+          'User-Agent' => Azericard.user_agent
         },
         body: {
-          "AMOUNT"    => request_options.amount,
-          "CURRENCY"  => request_options.currency,
-          "ORDER"     => request_options.order,
-          "RRN"       => request_options.rrn,
-          "INT_REF"   => request_options.intref,
-          "TERMINAL"  => Azericard.terminal,
-          "TRTYPE"    => request_options.tr_type,
-          "TIMESTAMP" => request_options.timestamp,
-          "NONCE"     => request_options.nonce,
-          "P_SIGN"    => p_sign
+          'AMOUNT' => request_options.amount,
+          'CURRENCY' => request_options.currency,
+          'ORDER' => request_options.order,
+          'RRN' => request_options.rrn,
+          'INT_REF' => request_options.intref,
+          'TERMINAL' => Azericard.terminal,
+          'TRTYPE' => request_options.tr_type,
+          'TIMESTAMP' => request_options.timestamp,
+          'NONCE' => request_options.nonce,
+          'P_SIGN' => p_sign
         }
       )
 
       response = request.run
 
-      if response.success?
-        if response.body.strip == '0'
-          true
-        else
-          raise AzericardResponseError, "Azericard responded with: #{response.body[0..4]}"
-        end
+      raise HTTPResponseError, "Azericard request failed: #{response.code}" unless response.success?
+
+      return true if Azericard.rsa
+
+      if response.body.strip == '0'
+        true
       else
-        raise HTTPResponseError, "Azericard request failed: #{response.code}"
+        raise AzericardResponseError, "Azericard responded with: #{response.body[0..4]}"
       end
     end
 
@@ -76,12 +76,14 @@ module Azericard
 
       # Operation type
       #
-      # 0 - auth
+      # 0 - for preauthorization
+      # 1 - for authorization
       # 21 - checkout
       # 24 - reversal
       tr_type = options.fetch(:tr_type).to_s
 
-      if tr_type == '0'
+      case tr_type
+      when '0'
         # Order description
         desc = options.fetch(:desc).to_s
 
@@ -92,17 +94,30 @@ module Azericard
           "#{desc.size}#{desc}#{merch_name.size}#{merch_name}#{merch_url.size}#{merch_url}" \
           "#{terminal.size}#{terminal}#{email.size}#{email}#{tr_type.size}#{tr_type}#{country.size}#{country}" \
           "#{merch_gmt.size}#{merch_gmt}#{timestamp.size}#{timestamp}#{nonce.size}#{nonce}#{backref.size}#{backref}"
+      when '1'
+        # Order description
+        desc = options.fetch(:desc).to_s
 
-      elsif tr_type == '21' || tr_type == '24'
+        # Merchant URL for posting authorization result
+        backref = options.fetch(:backref)
+
+        text_to_sign = "#{amount.size}#{amount}#{currency.size}#{currency}" \
+          "#{terminal.size}#{terminal}#{tr_type.size}#{tr_type}" \
+          "#{timestamp.size}#{timestamp}#{nonce.size}#{nonce}#{merch_url.size}#{merch_url}"
+      when '21', '24'
         # Merchant bank's retrieval reference number
         rrn = options.fetch(:rrn).to_s
 
         # E-Commerce gateway internal reference number
         intref = options.fetch(:intref)
-
-        text_to_sign = "#{order.size}#{order}#{amount.size}#{amount}#{currency.size}#{currency}" \
-          "#{rrn.size}#{rrn}#{intref.size}#{intref}#{tr_type.size}#{tr_type}#{terminal.size}#{terminal}" \
-          "#{timestamp.size}#{timestamp}#{nonce.size}#{nonce}"
+        text_to_sign = if Azericard.rsa
+                         "#{amount.size}#{amount}#{currency.size}#{currency}#{terminal.size}#{terminal}" \
+                         "#{tr_type.size}#{tr_type}#{order.size}#{order}#{rrn.size}#{rrn}#{intref.size}#{intref}"
+                       else
+                         "#{order.size}#{order}#{amount.size}#{amount}#{currency.size}#{currency}" \
+                         "#{rrn.size}#{rrn}#{intref.size}#{intref}#{tr_type.size}#{tr_type}" \
+                         "#{terminal.size}#{terminal}#{timestamp.size}#{timestamp}#{nonce.size}#{nonce}"
+                       end
       end
 
       AzericardOptions.new(nonce, timestamp, amount, currency, order, tr_type, desc, backref, rrn, intref, text_to_sign)
@@ -112,12 +127,28 @@ module Azericard
 
     # Generates MAC – Message Authentication Code
     def self.generate_mac(text_to_sign)
-      OpenSSL::HMAC.hexdigest('sha1', hex2bin(Azericard.secret_key), text_to_sign)
+      if Azericard.rsa
+        p_key = Azericard.private_key || read_key(Azericard.private_key_pem)
+        rsa = OpenSSL::PKey::RSA.new(p_key)
+        signature = rsa.sign(OpenSSL::Digest.new('SHA256'), text_to_sign)
+        signature.unpack1('H*')
+      else
+        OpenSSL::HMAC.hexdigest('sha1', hex2bin(Azericard.secret_key), text_to_sign)
+      end
     end
 
     # Decodes a hexadecimally encoded binary string
     def self.hex2bin(str)
       str.scan(/../).map { |x| x.to_i(16).chr }.join
+    end
+
+    def self.read_key(key_pem)
+      return unless File.exist?(key_pem)
+
+      file = File.open(key_pem)
+      file.read
+    ensure
+      file&.close
     end
   end
 end
