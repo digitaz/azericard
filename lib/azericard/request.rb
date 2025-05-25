@@ -142,10 +142,10 @@ module Azericard
       str.scan(/../).map { |x| x.to_i(16).chr }.join
     end
 
-    def self.read_key(key_pem)
-      return unless File.exist?(key_pem)
+    def self.read_key(value)
+      return value unless File.exist?(value)
 
-      file = File.open(key_pem)
+      file = File.open(value)
       file.read
     ensure
       file&.close
