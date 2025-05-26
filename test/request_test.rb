@@ -26,12 +26,23 @@ class RequestTest < Minitest::Test
     assert_equal '115110f072f734a729ebd0e7b65cfd8662fef682', Azericard::Request.generate_mac('text')
   end
 
-  def test_generate_rsa_mac
+  def test_generate_rsa_mac_from_file
     text_to_sign = 'Hello!'
     Azericard.rsa = true
     Azericard.private_key_pem = './test/support/keys/private_key.pem'
     Azericard.private_key = Azericard::Request.read_key(Azericard.private_key_pem)
     assert Azericard::Request.generate_mac(text_to_sign)
+  end
+
+  def test_generate_rsa_mac_from_string
+    text_to_sign = 'Hello!'
+    Azericard.rsa = true
+    file = File.open('./test/support/keys/private_key.pem')
+    key = file.read
+    Azericard.private_key = Azericard::Request.read_key(key)
+    assert Azericard::Request.generate_mac(text_to_sign)
+  ensure
+    file&.close
   end
 
   def test_options_for_request
